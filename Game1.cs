@@ -91,6 +91,7 @@ namespace Monogame_4___Bomb
                 exploded = true;
             }
 
+            //h
 
             base.Update(gameTime);
         }
