@@ -3,6 +3,8 @@ using Microsoft.Xna.Framework.Audio;
 using Microsoft.Xna.Framework.Graphics;
 using Microsoft.Xna.Framework.Input;
 using System;
+using System.Security;
+using System.Threading.Channels;
 
 namespace Monogame_4___Bomb
 {
@@ -16,15 +18,20 @@ namespace Monogame_4___Bomb
 
         Rectangle window;
 
-        Texture2D bombTexture;
+        Texture2D bombTexture, nukeTexture, pliersTexture;
 
         Rectangle resetRect;
+
+        Rectangle pliersRect;
+
+        Rectangle nukeRect;
 
         Rectangle bombRect;
 
         SpriteFont bombText;
 
         SoundEffect explosion;
+        SoundEffectInstance explosionIntsance;
 
         float seconds;
 
@@ -36,6 +43,7 @@ namespace Monogame_4___Bomb
             _graphics = new GraphicsDeviceManager(this);
             Content.RootDirectory = "Content";
             IsMouseVisible = true;
+
         }
 
         protected override void Initialize()
@@ -48,9 +56,12 @@ namespace Monogame_4___Bomb
             _graphics.ApplyChanges();
 
             seconds = 0f;
+            
             exploded = false;
             bombRect = new Rectangle(50, 50, 700, 400);
-            resetRect = new Rectangle(254, 132, 12, 18);
+            resetRect = new Rectangle(724, 179, 12, 18);
+            nukeRect = new Rectangle(-400, -250, 1600, 1000);
+            pliersRect = new Rectangle(0, 0, 65, 56);
 
 
             base.Initialize();
@@ -65,6 +76,9 @@ namespace Monogame_4___Bomb
             bombTexture = Content.Load<Texture2D>("bomb");
             bombText = Content.Load<SpriteFont>("BombFont");
             explosion = Content.Load<SoundEffect>("explosion");
+            explosionIntsance = explosion.CreateInstance();
+            nukeTexture = Content.Load<Texture2D>("nuke");
+            pliersTexture = Content.Load<Texture2D>("pliers");
         }
 
         protected override void Update(GameTime gameTime)
@@ -78,18 +92,22 @@ namespace Monogame_4___Bomb
             if (mouseState.LeftButton == ButtonState.Pressed && resetRect.Contains(mouseState.Position))
                 seconds = 0f;
             
+            pliersRect.Location = mouseState.Position;
 
 
             // TODO: Add your update logic here
            
             if (!exploded)
             seconds += (float)gameTime.ElapsedGameTime.TotalSeconds;
-            if (seconds > 10) 
+            if (seconds > 15) 
             {
                 seconds = 0;
-                explosion.Play();
+                explosionIntsance.Play();
                 exploded = true;
+                
             }
+
+            
 
             //h
 
@@ -98,14 +116,28 @@ namespace Monogame_4___Bomb
 
         protected override void Draw(GameTime gameTime)
         {
-            GraphicsDevice.Clear(Color.CornflowerBlue);
+            GraphicsDevice.Clear(Color.Orange);
 
             // TODO: Add your drawing code here
             _spriteBatch.Begin();
 
             _spriteBatch.Draw(bombTexture, bombRect, Color.White);
             _spriteBatch.DrawString(bombText, seconds.ToString("00.0"), new Vector2(270, 200), Color.Black);
+            _spriteBatch.DrawString(bombText, ("Cut somewhere on"), new Vector2(40, 20), Color.Lime);
+            _spriteBatch.DrawString(bombText, ("the red Wire"), new Vector2(100, 408), Color.Lime);
 
+            if (exploded)
+            {
+                _spriteBatch.Draw(nukeTexture, nukeRect, Color.White);
+
+                if (explosionIntsance.State == SoundState.Stopped) 
+                {
+                    Exit();
+                }
+
+            }
+
+            _spriteBatch.Draw(pliersTexture, pliersRect, Color.White);
 
             _spriteBatch.End();
 
