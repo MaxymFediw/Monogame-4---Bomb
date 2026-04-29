@@ -18,11 +18,15 @@ namespace Monogame_4___Bomb
 
         Rectangle window;
 
-        Texture2D bombTexture, nukeTexture, pliersTexture;
+        Texture2D bombTexture, nukeTexture, pliersTexture, winTexture;
 
         Rectangle resetRect;
 
+        Rectangle winRect;
+
         Rectangle pliersRect;
+
+        Rectangle doneRect;
 
         Rectangle nukeRect;
 
@@ -30,12 +34,13 @@ namespace Monogame_4___Bomb
 
         SpriteFont bombText;
 
-        SoundEffect explosion;
+        SoundEffect explosion, victory;
         SoundEffectInstance explosionIntsance;
+        SoundEffectInstance victoryInstance;
 
         float seconds;
 
-        bool exploded;
+        bool exploded, safe;
 
 
         public Game1()
@@ -58,11 +63,13 @@ namespace Monogame_4___Bomb
             seconds = 0f;
             
             exploded = false;
+            safe = false;
             bombRect = new Rectangle(50, 50, 700, 400);
-            resetRect = new Rectangle(724, 179, 12, 18);
+            resetRect = new Rectangle(253, 132, 12, 18);
             nukeRect = new Rectangle(-400, -250, 1600, 1000);
             pliersRect = new Rectangle(0, 0, 65, 56);
-
+            doneRect = new Rectangle (724, 179, 12, 18);
+            winRect = new Rectangle(0, 0, 800, 500);
 
             base.Initialize();
         }
@@ -76,9 +83,12 @@ namespace Monogame_4___Bomb
             bombTexture = Content.Load<Texture2D>("bomb");
             bombText = Content.Load<SpriteFont>("BombFont");
             explosion = Content.Load<SoundEffect>("explosion");
+            victory = Content.Load<SoundEffect>("victorySound");
             explosionIntsance = explosion.CreateInstance();
+            victoryInstance = victory.CreateInstance();
             nukeTexture = Content.Load<Texture2D>("nuke");
             pliersTexture = Content.Load<Texture2D>("pliers");
+            winTexture = Content.Load<Texture2D>("youWin");
         }
 
         protected override void Update(GameTime gameTime)
@@ -99,24 +109,32 @@ namespace Monogame_4___Bomb
            
             if (!exploded)
             seconds += (float)gameTime.ElapsedGameTime.TotalSeconds;
-            if (seconds > 15) 
+            if (seconds > 15 && !safe) 
             {
                 seconds = 0;
                 explosionIntsance.Play();
                 exploded = true;
                 
             }
+           
+            if (!exploded)
+            {
+                if (mouseState.LeftButton == ButtonState.Pressed && doneRect.Contains(mouseState.Position))
+                {
+                    victoryInstance.Play();
+                    safe = true;
+                    
+                }
+            }//Exiting means you won here.
 
-            
-
-            //h
+                    //h
 
             base.Update(gameTime);
         }
 
         protected override void Draw(GameTime gameTime)
         {
-            GraphicsDevice.Clear(Color.Orange);
+            GraphicsDevice.Clear(Color.Black);
 
             // TODO: Add your drawing code here
             _spriteBatch.Begin();
@@ -126,7 +144,7 @@ namespace Monogame_4___Bomb
             _spriteBatch.DrawString(bombText, ("Cut somewhere on"), new Vector2(40, 20), Color.Lime);
             _spriteBatch.DrawString(bombText, ("the red Wire"), new Vector2(100, 408), Color.Lime);
 
-            if (exploded)
+            if (exploded && !safe)
             {
                 _spriteBatch.Draw(nukeTexture, nukeRect, Color.White);
 
@@ -136,6 +154,18 @@ namespace Monogame_4___Bomb
                 }
 
             }
+
+            if (safe && !exploded) 
+            {
+               _spriteBatch.Draw(winTexture, winRect, Color.White);
+               
+                if (victoryInstance.State == SoundState.Stopped)
+                {
+                    Exit();
+                }
+            }
+
+            
 
             _spriteBatch.Draw(pliersTexture, pliersRect, Color.White);
 
